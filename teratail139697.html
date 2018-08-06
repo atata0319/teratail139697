@@ -45,19 +45,19 @@ function onInput() {
   xB -= xP;
   yB -= yP;
 
-  // Aの単位ベクトルを求める。
+  // １．Aの単位ベクトルを求める。
   const xUA = xA / Math.sqrt(xA ** 2 + yA ** 2);
   const yUA = yA / Math.sqrt(xA ** 2 + yA ** 2);
 
-  // Bの単位ベクトルを求める。
+  // １．Bの単位ベクトルを求める。
   const xUB = xB / Math.sqrt(xB ** 2 + yB ** 2);
   const yUB = yB / Math.sqrt(xB ** 2 + yB ** 2);
 
-  // Aの単位ベクトルとBの単位ベクトルから角度を2等分するベクトルMを求める。
+  // ２．Aの単位ベクトルとBの単位ベクトルから角度を2等分するベクトルMを求める。
   const xM = xUA + xUB;
   const yM = yUA + yUB;
 
-  // ベクトルMの単位ベクトルを求める。
+  // ３．ベクトルMの単位ベクトルを求める。
   const xUM = xM / Math.sqrt(xM ** 2 + yM ** 2);
   const yUM = yM / Math.sqrt(xM ** 2 + yM ** 2);
 
@@ -68,33 +68,34 @@ function onInput() {
   ctx.lineTo(xUM * 1000, yUM * 1000); // 単位ベクトルは小さすぎるので1000倍しておく
   ctx.stroke();
 
-  // ベクトルAとベクトルMからcosθを求める。
+  // ４．ベクトルAとベクトルMからcosθを求める。
   cos = (xA * xM + yA * yM) / (Math.sqrt(xA ** 2 + yA ** 2) * Math.sqrt(xM ** 2 + yM ** 2));
   console.log('cosθ: ' + cos);
   // 検算用にベクトルBでも計算してみる。
   cos2 = (xB * xM + yB * yM) / (Math.sqrt(xB ** 2 + yB ** 2) * Math.sqrt(xM ** 2 + yM ** 2));
   console.log('cosθ: ' + cos2);
 
-  // 半径とcosθから隣辺の長さを求める。
+  // ５／６．半径とcosθから隣辺の長さを求める。
   sin = Math.sqrt(1 - cos ** 2); // 後で使うのでsinθを求める。
   tan = sin / cos; // tanθを求める。
   s = r / tan;
   console.log('隣辺: ' + s);
 
-  // 単位ベクトルと隣辺の長さから接点の座標を求める。
+  // ７．単位ベクトルと隣辺の長さから接点の座標を求める。
   const xCA = xUA * s;
   const yCA = yUA * s;
   const xCB = xUB * s;
   const yCB = yUB * s;
 
-  // 制御点をPとした二次ベジエを描画してみる。
+  // 制御点をPとした二次ベジェを描画してみる。
   ctx.beginPath();
   ctx.strokeStyle = 'green';
   ctx.moveTo(xCA, yCA);
   ctx.quadraticCurveTo(0, 0, xCB, yCB);
   ctx.stroke();
 
-  // 三次ベジエを描画してみる。
+  // 三次ベジェを描画してみる。
+  // https://cat-in-136.github.io/2014/03/bezier-1-kappa.html
   ctx.beginPath();
   ctx.strokeStyle = 'blue';
   ctx.moveTo(xCA, yCA);
@@ -107,7 +108,7 @@ function onInput() {
       yCB);
   ctx.stroke();
 
-  // 円の中心を求める。
+  // ８．円の中心を求める。
   // 円の中心ベクトルはベクトルMの単位ベクトルに対辺の長さを掛けたものになる。
   const xE = xUM * r / sin;
   const yE = yUM * r / sin;
@@ -118,13 +119,13 @@ function onInput() {
   ctx.arc(xE, yE, r, 0, 2 * Math.PI);
   ctx.stroke();
 
-  // A接点の角度を求める。
+  // ９．A接点の角度を求める。
   const thetaCA = Math.atan2(yCA - yE, xCA - xE);
 
-  // B接点の角度を求める。
+  // ９．B接点の角度を求める。
   const thetaCB = Math.atan2(yCB - yE, xCB - xE);
 
-  // 円弧を描画する。
+  // １０．円弧を描画する。
   ctx.beginPath();
   ctx.strokeStyle = 'red';
   ctx.arc(xE, yE, r, Math.min(thetaCA, thetaCB), Math.max(thetaCA, thetaCB));
