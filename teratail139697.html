@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="UTF-8">
+</head>
+
+<body>
+  A：<input id="input_xA" value="57" /> , <input id="input_yA" value="83" /><br />
+  P：<input id="input_xP" value="336" /> , <input id="input_yP" value="123" /><br />
+  B：<input id="input_xB" value="346" /> , <input id="input_yB" value="300" /><br />
+  半径：<input id="input_r" value="40" /><br />
+  <canvas id="canvas" width="500" height="500"></canvas>
+</body>
+
+<script>
+
+const canvas = document.getElementById('canvas');
+
+function onInput() {
+  let xA = input_xA.value;
+  let yA = input_yA.value;
+  const xP = input_xP.value;
+  const yP = input_yP.value;
+  let xB = input_xB.value;
+  let yB = input_yB.value;
+  const r = input_r.value;
+  const k = 4 * (Math.sqrt(2) - 1) / 3;
+
+  const ctx = canvas.getContext('2d');
+  ctx.save();
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, 500, 500);
+
+  ctx.beginPath();
+  ctx.strokeStyle = 'black';
+  ctx.moveTo(xA, yA);
+  ctx.lineTo(xP, yP);
+  ctx.lineTo(xB, yB);
+  ctx.stroke();
+
+  // Pを原点とした座標（ベクトル）を求める。
+  xA -= xP;
+  yA -= yP;
+  xB -= xP;
+  yB -= yP;
+
+  // Aの単位ベクトルを求める。
+  const xUA = xA / Math.sqrt(xA ** 2 + yA ** 2);
+  const yUA = yA / Math.sqrt(xA ** 2 + yA ** 2);
+
+  // Bの単位ベクトルを求める。
+  const xUB = xB / Math.sqrt(xB ** 2 + yB ** 2);
+  const yUB = yB / Math.sqrt(xB ** 2 + yB ** 2);
+
+  // Aの単位ベクトルとBの単位ベクトルから角度を2等分するベクトルMを求める。
+  const xM = xUA + xUB;
+  const yM = yUA + yUB;
+
+  // ベクトルMの単位ベクトルを求める。
+  const xUM = xM / Math.sqrt(xM ** 2 + yM ** 2);
+  const yUM = yM / Math.sqrt(xM ** 2 + yM ** 2);
+
+  // ベクトルMを描画してみる。
+  ctx.translate(xP, yP); // canvasの原点を中点Pに移動する。
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.lineTo(xUM * 1000, yUM * 1000); // 単位ベクトルは小さすぎるので1000倍しておく
+  ctx.stroke();
+
+  // ベクトルAとベクトルMからcosθを求める。
+  cos = (xA * xM + yA * yM) / (Math.sqrt(xA ** 2 + yA ** 2) * Math.sqrt(xM ** 2 + yM ** 2));
+  console.log('cosθ: ' + cos);
+  // 検算用にベクトルBでも計算してみる。
+  cos2 = (xB * xM + yB * yM) / (Math.sqrt(xB ** 2 + yB ** 2) * Math.sqrt(xM ** 2 + yM ** 2));
+  console.log('cosθ: ' + cos2);
+
+  // 半径とcosθから隣辺の長さを求める。
+  sin = Math.sqrt(1 - cos ** 2); // 後で使うのでsinθを求める。
+  tan = sin / cos; // tanθを求める。
+  s = r / tan;
+  console.log('隣辺: ' + s);
+
+  // 単位ベクトルと隣辺の長さから接点の座標を求める。
+  const xCA = xUA * s;
+  const yCA = yUA * s;
+  const xCB = xUB * s;
+  const yCB = yUB * s;
+
+  // 制御点をPとした二次ベジエを描画してみる。
+  ctx.beginPath();
+  ctx.strokeStyle = 'green';
+  ctx.moveTo(xCA, yCA);
+  ctx.quadraticCurveTo(0, 0, xCB, yCB);
+  ctx.stroke();
+
+  // 三次ベジエを描画してみる。
+  ctx.beginPath();
+  ctx.strokeStyle = 'blue';
+  ctx.moveTo(xCA, yCA);
+  ctx.bezierCurveTo(
+      xCA - xUA * r * k,
+      yCA - yUA * r * k,
+      xCB - xUB * r * k,
+      yCB - yUB * r * k,
+      xCB,
+      yCB);
+  ctx.stroke();
+
+  // 円の中心を求める。
+  // 円の中心ベクトルはベクトルMの単位ベクトルに対辺の長さを掛けたものになる。
+  const xE = xUM * r / sin;
+  const yE = yUM * r / sin;
+
+  // 参考のために円を描画する。
+  ctx.beginPath();
+  ctx.strokeStyle = 'black';
+  ctx.arc(xE, yE, r, 0, 2 * Math.PI);
+  ctx.stroke();
+
+  // A接点の角度を求める。
+  const thetaCA = Math.atan2(yCA - yE, xCA - xE);
+
+  // B接点の角度を求める。
+  const thetaCB = Math.atan2(yCB - yE, xCB - xE);
+
+  // 円弧を描画する。
+  ctx.beginPath();
+  ctx.strokeStyle = 'red';
+  ctx.arc(xE, yE, r, Math.min(thetaCA, thetaCB), Math.max(thetaCA, thetaCB));
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+input_xA.addEventListener('input', onInput, false);
+input_yA.addEventListener('input', onInput, false);
+input_xP.addEventListener('input', onInput, false);
+input_yP.addEventListener('input', onInput, false);
+input_xB.addEventListener('input', onInput, false);
+input_yB.addEventListener('input', onInput, false);
+input_r.addEventListener('input', onInput, false);
+
+onInput();
+
+</script>
+
+</html>
